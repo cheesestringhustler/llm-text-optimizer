@@ -11,12 +11,13 @@ export async function POST(req: Request, res: Response) {
     const systemPrompt = `Return the language in ISO 639-1 format. For example, if the language is English, return "en".`;
     const userPrompt = `${text}`
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5",
+      model: "gpt-3.5-turbo",
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
       temperature: 0.8,
       max_tokens: 4096,
     });
-    return Response.json({ optimizedText: response.choices[0].message.content });
+    
+    return Response.json(response.choices[0].message.content);
   } catch (error) {
     console.error("Error detecting language:", error);
     return Response.json({ error: "Failed to detect language" }, { status: 500 });
