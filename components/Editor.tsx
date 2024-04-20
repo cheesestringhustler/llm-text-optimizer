@@ -1,13 +1,15 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, Fragment } from "react";
 import styles from "./Editor.module.scss";
 import commonLanguages from "../languages.json";
+import Popover from './Popover';
 
 function Editor() {
     const [text, setText] = useState("She dont likes go too the store on sundays;"); // Text input by the user
     const [languageCode, setLanguageCode] = useState("en"); // Selected language, default is English
-    const [optimizedText, setOptimizedText] = useState<OptimizedText>(); // Stores text changes after optimization
     const [promptStyle, setPromptStyle] = useState("no-style"); // Style of the prompt
+    const [optimizedText, setOptimizedText] = useState<OptimizedText>(); // Stores text changes after optimization
+    const [activeChangeId, setActiveChangeId] = useState<number | null>(null);
     const [debouncedText, setDebouncedText] = useState(text); // Debounced text for delayed processing
     const adaptLanguage: Boolean = false; // Debug flag to adapt language automatically
 
@@ -39,22 +41,57 @@ function Editor() {
         }
     }, [text, debouncedText]);
 
+    
     // Handler for form submission
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const languageName = commonLanguages.find((lang) => lang.code === languageCode)?.name;
         // Fetching optimized text from the server
         const response = await fetch('/api/optimize', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ text, languageName }),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text, languageName }),
         });
         const changes = await response.json() as OptimizedText;
         console.log("text changes:", changes);
         setOptimizedText(changes);
     };
+    
+    // Function to handle accepting a change
+    const acceptChange = useCallback((changeId: number) => {
+        const change = optimizedText?.changes.find((_, index) => index === changeId);
+        if (change) {
+            const newText = text.substring(0, change.offset) + change.replacement + text.substring(change.offset + change.length);
+            setText(newText);
+        }
+    }, [text, optimizedText]);
+
+    // Modified highlightChanges function to return JSX
+    const highlightChanges = useCallback(() => {
+        if (!optimizedText) return <></>;
+        let elements = [];
+        let lastIndex = 0;
+        optimizedText.changes.forEach((change, index) => {
+            elements.push(<Fragment key={'text-before-' + index}>{text.substring(lastIndex, change.offset)}</Fragment>);
+            elements.push(
+                <span key={'change-' + index}
+                      className={styles.highlight}
+                      onMouseEnter={() => setActiveChangeId(index)}
+                      onMouseLeave={() => setActiveChangeId(null)}>
+                    {text.substring(change.offset, change.offset + change.length)}
+                    {activeChangeId === index && (
+                        <Popover message={change.message} onAccept={() => acceptChange(index)} />
+                    )}
+                </span>
+            );
+            lastIndex = change.offset + change.length;
+        });
+        elements.push(<Fragment key='text-after'>{text.substring(lastIndex)}</Fragment>);
+        return <>{elements}</>;
+    }, [text, optimizedText, activeChangeId, acceptChange]);
+
 
     return (
         <div className={styles.editor}>
@@ -82,15 +119,27 @@ function Editor() {
 
             {/* Main user interaction to enter text, submit and integrate suggestions */}
             <div className={styles.workarea}>
-                <form onSubmit={handleSubmit} className={styles.textarea}>
-                    <textarea value={text} onChange={(e) => setText(e.target.value)}></textarea>
-                    <button>Check</button>
-                </form>
+
+                <div className={styles.textcontainer}>
+                    <form onSubmit={handleSubmit} className={styles.textinput}>
+                        <textarea value={text} onChange={(e) => setText(e.target.value)}></textarea>
+                        <button>Check</button>
+                    </form>
+                    
+                    {/* Displaying highlighted changes */}
+                    <div className={styles.textoutput}>
+                        {highlightChanges()}
+                    </div>
+                </div>
+
                 {/* Listing the possible changes */}
                 <div className={styles.optimizations}>
                     <ul>
                         {optimizedText && optimizedText.changes.map((change, index) => (
-                            <li key={index}>{change.message} - Suggested: {change.replacements.map((replacement) => replacement.value).join(", ")}</li>
+                            <li key={index} className={index === activeChangeId ? styles.activeChange : ""}>
+                                {change.replacement} - {change.message}
+                                <button onClick={() => acceptChange(index)}>Accept</button>
+                            </li>
                         ))}
                     </ul>
                 </div>
