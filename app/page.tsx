@@ -5,7 +5,7 @@ import Editor from "@/components/Editor";
 export default function Home() {
   return (
     <main className={styles.main}>
-      <h1>Spell Checker</h1>
+      <h1>Text Optimizer</h1>
       <Editor />
     </main>
   );
