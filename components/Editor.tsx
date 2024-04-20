@@ -3,12 +3,14 @@ import React, { useState, useEffect, useCallback, Fragment } from "react";
 import styles from "./Editor.module.scss";
 import commonLanguages from "../languages.json";
 import Popover from './Popover';
+import { diffChars, diffWords, Change } from 'diff';
+
 
 function Editor() {
     const [text, setText] = useState("She dont likes go too the store on sundays;"); // Text input by the user
     const [languageCode, setLanguageCode] = useState("en"); // Selected language, default is English
     const [promptStyle, setPromptStyle] = useState("no-style"); // Style of the prompt
-    const [optimizedText, setOptimizedText] = useState<OptimizedText>(); // Stores text changes after optimization
+    const [optimizedText, setOptimizedText] = useState(); // Stores text changes after optimization
     const [activeChangeId, setActiveChangeId] = useState<number | null>(null);
     const [debouncedText, setDebouncedText] = useState(text); // Debounced text for delayed processing
     const adaptLanguage: Boolean = false; // Debug flag to adapt language automatically
@@ -54,43 +56,81 @@ function Editor() {
             },
             body: JSON.stringify({ text, languageName }),
         });
-        const changes = await response.json() as OptimizedText;
-        console.log("text changes:", changes);
-        setOptimizedText(changes);
+        const changes = await response.json();
+        // console.log("text changes:", changes);
+        setOptimizedText(changes.optimizedText);
     };
     
-    // Function to handle accepting a change
-    const acceptChange = useCallback((changeId: number) => {
-        const change = optimizedText?.changes.find((_, index) => index === changeId);
-        if (change) {
-            const newText = text.substring(0, change.offset) + change.replacements[0].value + text.substring(change.offset + change.length); // TODO: Use chosen replacement
-            setText(newText);
-        }
-    }, [text, optimizedText]);
+    interface ExtendedChange extends Change {
+        modified?: boolean; // Indicates if the change is a modification
+        added?: boolean; // Indicates if the change is an addition
+        removed?: boolean; // Indicates if the change is a removal
+    }
 
-    // Modified highlightChanges function to return JSX
-    const highlightChanges = useCallback(() => {
-        if (!optimizedText) return <></>;
-        let elements = [];
-        let lastIndex = 0;
-        optimizedText.changes.forEach((change, index) => {
-            elements.push(<Fragment key={'text-before-' + index}>{text.substring(lastIndex, change.offset)}</Fragment>);
-            elements.push(
-                <span key={'change-' + index}
-                      className={styles.highlight}
-                      onMouseEnter={() => setActiveChangeId(index)}
-                      onMouseLeave={() => setActiveChangeId(null)}>
-                    {text.substring(change.offset, change.offset + change.length)}
-                    {activeChangeId === index && (
-                        <Popover message={change.message} onAccept={() => acceptChange(index)} />
-                    )}
-                </span>
-            );
-            lastIndex = change.offset + change.length;
+    // Preprocess diffs to merge added and removed changes into modified changes
+    const preprocessDiffs = (diffs: ExtendedChange[]) => {
+        const mergedDiffs: ExtendedChange[] = [];
+        let temp: ExtendedChange | null = null;
+
+        diffs.forEach((part, index) => {
+            if (part.added || part.removed) {
+                if (temp) {
+                    // Merge opposite changes (add vs. remove) into a modified change
+                    if ((temp.added && part.removed) || (temp.removed && part.added)) {
+                        mergedDiffs.push({
+                            value: temp.value + part.value,
+                            modified: true, // Mark as modified
+                        });
+                        temp = null; // Reset temp after merging
+                    } else {
+                        // Push consecutive same-type changes and update temp
+                        mergedDiffs.push(temp);
+                        temp = part;
+                    }
+                } else {
+                    temp = part; // Set temp for potential merging
+                }
+            } else {
+                // Push unchanged parts directly
+                if (temp) {
+                    mergedDiffs.push(temp);
+                    temp = null;
+                }
+                mergedDiffs.push(part);
+            }
         });
-        elements.push(<Fragment key='text-after'>{text.substring(lastIndex)}</Fragment>);
-        return <>{elements}</>;
-    }, [text, optimizedText, activeChangeId, acceptChange]);
+
+        // Push any remaining temp part
+        if (temp) {
+            mergedDiffs.push(temp);
+        }
+
+        return mergedDiffs;
+    };
+
+    // Render diffs with detailed styling based on change type
+    const renderDetailedDiff = () => {
+        if (!optimizedText) return <></>; // Return empty fragment if there's no optimized text
+        const diffs = diffChars(text, optimizedText); // Compute character-level diffs
+        const processedDiffs = preprocessDiffs(diffs); // Preprocess diffs for rendering
+
+        return (
+            <div>
+                {processedDiffs.map((part, index) => (
+                    <span key={index}
+                          style={{ backgroundColor: part.modified ? 'orange' : part.added ? 'lightgreen' : part.removed ? 'salmon' : 'transparent' }}
+                          onMouseEnter={() => setActiveChangeId(index)}
+                          onMouseLeave={() => setActiveChangeId(null)}>
+                        {part.value}
+                        {/* Show popover only if part is modified, added, or removed */}
+                        {activeChangeId === index && (part.modified || part.added || part.removed) && (
+                            <Popover message={`Change type: ${part.modified ? 'Modified' : part.added ? 'Added' : part.removed ? 'Removed' : 'Unchanged'}`} />
+                        )}
+                    </span>
+                ))}
+            </div>
+        );
+    };
 
     return (
         <div className={styles.editor}>
@@ -127,21 +167,13 @@ function Editor() {
                     
                     {/* Displaying highlighted changes */}
                     <div className={styles.textoutput}>
-                        {highlightChanges()}
+                        {renderDetailedDiff()}
                     </div>
                 </div>
 
                 {/* Listing the possible changes */}
                 <div className={styles.optimizations}>
                     <ul>
-                        {optimizedText && optimizedText.changes.map((change, index) => (
-                            <li key={index} className={index === activeChangeId ? styles.activeChange : ""}>
-                                {change.replacements.map((replacement, index) => (
-                                    <span key={index}>{replacement.value}</span>
-                                ))} - {change.message}
-                                <button onClick={() => acceptChange(index)}>Accept</button>
-                            </li>
-                        ))}
                     </ul>
                 </div>
             </div>

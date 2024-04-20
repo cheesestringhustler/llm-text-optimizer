@@ -1,16 +1,16 @@
 import React from 'react';
-// import styles from './Popover.module.scss'; // Assume you have some basic styling for the popover
+import styles from './Popover.module.scss'; // Assume you have some basic styling for the popover
 
 interface PopoverProps {
     message: string;
-    onAccept: () => void;
+    // onAccept: () => void;
 }
 
-const Popover: React.FC<PopoverProps> = ({ message, onAccept }) => {
+const Popover: React.FC<PopoverProps> = ({ message }) => {
     return (
-        <div >
+        <div className={styles.popover}>
             <p>{message}</p>
-            <button onClick={onAccept}>Accept</button>
+            {/* <button onClick={onAccept}>Accept</button> */}
         </div>
     );
 };
