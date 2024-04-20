@@ -8,60 +8,133 @@ export async function POST(req: Request, res: Response) {
   const { text, language } = await req.json();
 
   try {
-    const systemPrompt = `The user will provide a text. Correct the text to have proper spelling, grammar and punctation.\n
-    If the text varies from ${language} adapt it accordingly.
-    Provide the text changes in JSON, for example for the sentence: "She dont likes go too the store on sundays;" return:
-    "changes": [
-            {
-                "message": "Possible spelling mistake found.",
-                "type": "Spelling",
-                "replacements": [
-                    {
-                        "value": "don't"
-                    }
-                ],
-                "offset": 4,
-                "length": 4,
-            },
-            {
-                "message": "The verb “go” needs to be in the to-infinitive form.",
-                "type": "Grammar",
-                "replacements": [
-                    {
-                        "value": "likes to go"
-                    }
-                ],
-                "offset": 9,
-                "length": 8,
-            },
-            {
-                "message": "Possible spelling mistake found.",
-                "type": "Spelling",
-                "replacements": [
-                    {
-                        "value": "Sundays"
-                    }
-                ],
-                "offset": 35,
-                "length": 7,
-            },
-            {
-              "message": "Possible punctuation mistake found.",
-              "type": "Punctuation",
-              "replacements": [
-                  {
-                      "value": "."
-                  }
-              ],
-              "offset": 42,
-              "length": 1,
-          }
-    ]`;
-    const userPrompt = `${text}`
+const systemPrompt = `
+Correct the text to have proper spelling, grammar and punctation.
+If the text varies from ${language} adapt it accordingly.
+Provide the text changes in JSON. The offset and length should be the same as the original text.
+Example 1:
+the mans car who's parked outside looks very old and rusty and he never seem to care.
+Returned JSON:
+{
+  "changes": [
+    {
+      "message": "Capitalize the first word of a sentence.",
+      "type": "Capitalization",
+      "replacements": [
+        {
+          value: "The"
+        }
+      ],
+      "offset": 0,
+      "length": 3
+    },
+    {
+      "message": "'mans' refers to the verb 'man' meaning take command of something. Did you mean “men” or “man's”?",
+      "type": "Grammar",
+      "replacements": [
+        {
+          value: "men"
+        },
+        {
+          value: "man's"
+        }
+      ],
+      "offset": 4,
+      "length": 4
+    },
+    {
+      "message": "There might be a mistake here.",
+      "type": "Grammar",
+      "replacements": [
+        {
+          value: "thats's"
+        }
+      ],
+      "offset": 13,
+      "length": 5
+    },
+    {
+      "message": "Use a comma before 'and' if it connects two independent clauses (unless they are closely connected and short).",
+      "type": "Punctuation",
+      "replacements": [
+        {
+          value: ", and"
+        }
+      ],
+      "offset": 58,
+      "length": 4
+    },
+    {
+      "message": "Ensure subjects and verbs match in plurality.",
+      "type": "Grammar",
+      "replacements": [
+        {
+          value: "seems"
+        }
+      ],
+      "offset": 72,
+      "length": 4
+    }
+  ]
+}
+Example 2:
+her dog always bark at the mailman, it scares everyone in the hous.
+Returned JSON:
+{
+  "changes": [
+    {
+      "message": "Capitalize the first word of a sentence.",
+      "type": "Capitalization",
+      "replacements": [
+        {
+          value: "Her"
+        }
+      ],
+      "offset": 0,
+      "length": 3
+    },
+    {
+      "message": "Ensure subjects and verbs match in plurality.",
+      "type": "Grammar",
+      "replacements": [
+        {
+          value: "barks"
+        }
+      ],
+      "offset": 15,
+      "length": 4
+    },
+    {
+      "message": "There might be a mistake here.",
+      "type": "Grammar",
+      "replacements": [
+        {
+          value: "which"
+        }
+      ],
+      "offset": 36,
+      "length": 2
+    },
+    {
+      "message": "Spelling mistake found.",
+      "type": "Spelling",
+      "replacements": [
+        {
+          value: "house"
+        }
+      ],
+      "offset": 62,
+      "length": 4
+    }
+  ]
+}
+`;
+    const userPrompt = `Correct the text to have proper spelling, grammar and punctation.
+${text}`
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4-turbo",
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-      temperature: 0.8,
+      temperature: 1.0,
       max_tokens: 4096,
       response_format: { type: "json_object" },
     });
@@ -71,4 +144,3 @@ export async function POST(req: Request, res: Response) {
     return Response.json({ error: "Failed to optimize text" }, { status: 500 });
   }
 }
-

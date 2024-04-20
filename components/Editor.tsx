@@ -63,7 +63,7 @@ function Editor() {
     const acceptChange = useCallback((changeId: number) => {
         const change = optimizedText?.changes.find((_, index) => index === changeId);
         if (change) {
-            const newText = text.substring(0, change.offset) + change.replacement + text.substring(change.offset + change.length);
+            const newText = text.substring(0, change.offset) + change.replacements[0].value + text.substring(change.offset + change.length); // TODO: Use chosen replacement
             setText(newText);
         }
     }, [text, optimizedText]);
@@ -91,7 +91,6 @@ function Editor() {
         elements.push(<Fragment key='text-after'>{text.substring(lastIndex)}</Fragment>);
         return <>{elements}</>;
     }, [text, optimizedText, activeChangeId, acceptChange]);
-
 
     return (
         <div className={styles.editor}>
@@ -137,7 +136,9 @@ function Editor() {
                     <ul>
                         {optimizedText && optimizedText.changes.map((change, index) => (
                             <li key={index} className={index === activeChangeId ? styles.activeChange : ""}>
-                                {change.replacement} - {change.message}
+                                {change.replacements.map((replacement, index) => (
+                                    <span key={index}>{replacement.value}</span>
+                                ))} - {change.message}
                                 <button onClick={() => acceptChange(index)}>Accept</button>
                             </li>
                         ))}

@@ -8,7 +8,11 @@ type OptimizedText = {
         {
             message: string;
             type: string;
-            replacement: string;
+            replacements: [
+                {
+                    value: string;
+                }
+            ];
             offset: number;
             length: number;
         }
