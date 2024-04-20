@@ -11,7 +11,7 @@ export async function POST(req: Request, res: Response) {
 const systemPrompt = `
 Correct the text to have proper spelling, grammar and punctation.
 If the text varies from ${language} adapt it accordingly.
-Provide the text changes in JSON. The offset and length should be the same as the original text.
+Provide the text changes in JSON. The offset describes the start of the change and length describes the length of the change each value is based on the amount of characters.
 Example 1:
 the mans car who's parked outside looks very old and rusty and he never seem to care.
 Returned JSON:
@@ -129,7 +129,7 @@ Returned JSON:
   ]
 }
 `;
-    const userPrompt = `Correct the text to have proper spelling, grammar and punctation.
+    const userPrompt = `Correct the text to have proper spelling, grammar and punctation:
 ${text}`
     const response = await openai.chat.completions.create({
       model: "gpt-4-turbo",
