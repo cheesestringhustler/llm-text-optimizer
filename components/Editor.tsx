@@ -4,12 +4,12 @@ import styles from "./Editor.module.scss";
 import commonLanguages from "../languages.json";
 
 function Editor() {
-    const [text, setText] = useState("She dont likes go too the store on sundays;");                           // Text input by the user
-    const [languageCode, setLanguageCode] = useState("en");         // Selected language, default is English
-    const [optimizedText, setOptimizedText] = useState<OptimizedText>();         // Text after optimization
-    const [promptStyle, setPromptStyle] = useState("no-style");     // Style of the prompt
-    const [debouncedText, setDebouncedText] = useState(text);       // Debounced text for delayed processing
-    const adaptLanguage: Boolean = true;                            // Debug flag to adapt language automatically
+    const [text, setText] = useState("She dont likes go too the store on sundays;"); // Text input by the user
+    const [languageCode, setLanguageCode] = useState("en"); // Selected language, default is English
+    const [optimizedText, setOptimizedText] = useState<OptimizedText>(); // Stores text changes after optimization
+    const [promptStyle, setPromptStyle] = useState("no-style"); // Style of the prompt
+    const [debouncedText, setDebouncedText] = useState(text); // Debounced text for delayed processing
+    const adaptLanguage: Boolean = false; // Debug flag to adapt language automatically
 
     // Language adaptation based on text change, every 3 seconds
     useEffect(() => {
@@ -34,25 +34,10 @@ function Editor() {
             return () => {
                 clearTimeout(handler);
             };
+        } else {
+            setDebouncedText("");
         }
     }, [text, debouncedText]);
-
-    // Synchronize select element with language state
-    useEffect(() => {
-        const selectElement = document.querySelector('select');
-        if (selectElement) {
-            selectElement.value = languageCode;
-            const changeLanguageCode = (event: Event) => {
-                const target = event.target as HTMLSelectElement;
-                setLanguageCode(target.value);
-            };
-            selectElement.addEventListener('change', changeLanguageCode);
-            
-            return () => {
-                selectElement.removeEventListener('change', changeLanguageCode);
-            };
-        }
-    }, [languageCode]);
 
     // Handler for form submission
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -66,9 +51,9 @@ function Editor() {
           },
           body: JSON.stringify({ text, languageName }),
         });
-        const data = await response.json() as OptimizedText;
-        console.log("optimized text:", data);
-        // setOptimizedText(data);
+        const changes = await response.json() as OptimizedText;
+        console.log("text changes:", changes);
+        setOptimizedText(changes);
     };
 
     return (
@@ -101,14 +86,12 @@ function Editor() {
                     <textarea value={text} onChange={(e) => setText(e.target.value)}></textarea>
                     <button>Check</button>
                 </form>
-
-                {/* {optimizedText && <div><h2>Optimized Text</h2><p>{optimizedText}</p></div>} */}
-
+                {/* Listing the possible changes */}
                 <div className={styles.optimizations}>
                     <ul>
-                        <li>Optimization 1</li>
-                        <li>Optimization 2</li>
-                        <li>Optimization 3</li>
+                        {optimizedText && optimizedText.changes.map((change, index) => (
+                            <li key={index}>{change.message} - Suggested: {change.replacements.map((replacement) => replacement.value).join(", ")}</li>
+                        ))}
                     </ul>
                 </div>
             </div>
