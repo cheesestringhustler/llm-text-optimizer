@@ -4,9 +4,9 @@ import styles from "./Editor.module.scss";
 import commonLanguages from "../languages.json";
 
 function Editor() {
-    const [text, setText] = useState("");                           // Text input by the user
+    const [text, setText] = useState("She dont likes go too the store on sundays;");                           // Text input by the user
     const [languageCode, setLanguageCode] = useState("en");         // Selected language, default is English
-    const [optimizedText, setOptimizedText] = useState('');         // Text after optimization
+    const [optimizedText, setOptimizedText] = useState<OptimizedText>();         // Text after optimization
     const [promptStyle, setPromptStyle] = useState("no-style");     // Style of the prompt
     const [debouncedText, setDebouncedText] = useState(text);       // Debounced text for delayed processing
     const adaptLanguage: Boolean = true;                            // Debug flag to adapt language automatically
@@ -16,7 +16,6 @@ function Editor() {
         if (adaptLanguage && text.trim() !== "") {
             const handler = setTimeout(async () => {
                 if (text !== debouncedText) {
-                    console.log("text changed");
                     // Fetching language prediction from the server
                     const response = await fetch('/api/language', {
                         method: 'POST',
@@ -26,7 +25,7 @@ function Editor() {
                         body: JSON.stringify({ text }),
                     });
                     const data = await response.json();
-                    console.log(data);
+                    console.log("language prediction:", data);
                     setLanguageCode(data);
                     setDebouncedText(text);
                 }
@@ -67,8 +66,9 @@ function Editor() {
           },
           body: JSON.stringify({ text, languageName }),
         });
-        const data = await response.json();
-        setOptimizedText(data.optimizedText);
+        const data = await response.json() as OptimizedText;
+        console.log("optimized text:", data);
+        // setOptimizedText(data);
     };
 
     return (
@@ -102,13 +102,13 @@ function Editor() {
                     <button>Check</button>
                 </form>
 
-                {optimizedText && <div><h2>Optimized Text</h2><p>{optimizedText}</p></div>}
+                {/* {optimizedText && <div><h2>Optimized Text</h2><p>{optimizedText}</p></div>} */}
 
-                <div className={styles.suggestions}>
+                <div className={styles.optimizations}>
                     <ul>
-                        <li>Suggestion 1</li>
-                        <li>Suggestion 2</li>
-                        <li>Suggestion 3</li>
+                        <li>Optimization 1</li>
+                        <li>Optimization 2</li>
+                        <li>Optimization 3</li>
                     </ul>
                 </div>
             </div>
