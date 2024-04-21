@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Popover from './Popover';
 import { diffChars, Change } from 'diff';
 import { ExtendedChange } from '../types/diff';
+import { Switch } from "@/components/ui/switch"
 
 interface TextOutputProps {
     text: string;
@@ -15,25 +16,27 @@ interface TextOutputProps {
 
 const TextOutput: React.FC<TextOutputProps> = ({ text, setText, language, optimizedText, setOptimizedText, activeChangeId, setActiveChangeId }) => {
     const [processedDiffs, setProcessedDiffs] = useState<ExtendedChange[]>([]);
+    const [showDiffs, setShowDiffs] = useState(true);
 
+    // Preprocess diffs to merge added and removed changes
     const preprocessDiffs = (diffs: ExtendedChange[]) => {
         return diffs.reduce((acc: ExtendedChange[], part, index, array) => {
             if (part.added || part.removed) {
                 const nextPart = array[index + 1];
                 if (nextPart && ((part.added && nextPart.removed) || (part.removed && nextPart.added))) {
                     acc.push({
-                        id: part.id, // Use the id of the first part
+                        id: part.id,
                         value: part.value + "->" + nextPart.value,
                         modified: true,
                         added: undefined,
                         removed: undefined,
                     });
-                    array.splice(index + 1, 1); // Remove next part as it's merged
+                    array.splice(index + 1, 1); // Merge changes
                 } else {
-                    acc.push(part); // Add non-mergeable part as is
+                    acc.push(part); // Non-mergeable part
                 }
             } else {
-                acc.push(part); // Directly add unchanged parts
+                acc.push(part); // Unchanged part
             }
             return acc;
         }, []);
@@ -44,40 +47,48 @@ const TextOutput: React.FC<TextOutputProps> = ({ text, setText, language, optimi
         // Extend each Change object with an id and the necessary properties
         const extendedDiffs: ExtendedChange[] = diffs.map((diff, index) => ({
             ...diff,
-            id: index, // Assign a unique ID based on index
-            modified: false, // Initialize as not modified
-            added: !!diff.added, // Explicitly set added and removed flags
+            id: index,
+            modified: false,
+            added: !!diff.added,
             removed: !!diff.removed,
         }));
-        const processed = preprocessDiffs(extendedDiffs); // Now preprocessDiffs operates on properly typed objects
+        const processed = preprocessDiffs(extendedDiffs);
         console.log(processed);
         setProcessedDiffs(processed);
-    }, [optimizedText]); // Dependency array, re-run effect when optimizedText changes
-
-    // if (!optimizedText) return <></>; // Return empty fragment if there's no optimized text
+    }, [optimizedText]); // Re-run effect when optimizedText changes
 
     return (
-        <div className='min-h-[300px] h-[300px] overflow-auto border border-gray-200 rounded-md mb-4 bg-gray-100'>
+        <div className='min-h-[300px] h-[300px] overflow-auto border border-gray-200 rounded-md mb-4 bg-gray-100 relative'>
             {
-            optimizedText !== "" ? processedDiffs.map((part, index) => (
-                <span
-                    key={index}
-                    style={{ backgroundColor: part.modified ? 'orange' : part.added ? 'lightgreen' : part.removed ? 'salmon' : 'transparent' }}
-                    onMouseEnter={() => setActiveChangeId(index)}
-                    onMouseLeave={() => setActiveChangeId(null)}
-                    title={part.reason ? part.reason : ''}>
-                    {part.value}
-                    {/* Show popover only if part is modified, added, or removed */}
-                    {/* TODO: add popover to accept/reject changes with reason */}
-                    {/* {activeChangeId === index && (part.modified || part.added || part.removed) && (
-                        <Popover
-                            message={`Change type: ${processedDiffs[activeChangeId].modified ? 'Modified' : processedDiffs[activeChangeId].added ? 'Added' : processedDiffs[activeChangeId].removed ? 'Removed' : 'Unchanged'}`}
-                            onAccept={() => acceptDiff(processedDiffs[activeChangeId].id)}
-                            onReject={() => rejectDiff(processedDiffs[activeChangeId].id)}
-                        />
-                    )} */}
-                </span>
-            )) : <></>}
+                showDiffs ? (
+                    optimizedText !== "" ? processedDiffs.map((part, index) => (
+                        <span
+                            key={index}
+                            style={{ backgroundColor: part.modified ? 'orange' : part.added ? 'lightgreen' : part.removed ? 'salmon' : 'transparent' }}
+                            onMouseEnter={() => setActiveChangeId(index)}
+                            onMouseLeave={() => setActiveChangeId(null)}
+                            title={part.reason ? part.reason : ''}>
+                            {part.value}
+                            {/* Show popover only if part is modified, added, or removed */}
+                            {/* TODO: add popover to accept/reject changes with reason */}
+                            {/* {activeChangeId === index && (part.modified || part.added || part.removed) && (
+                            <Popover
+                                message={`Change type: ${processedDiffs[activeChangeId].modified ? 'Modified' : processedDiffs[activeChangeId].added ? 'Added' : processedDiffs[activeChangeId].removed ? 'Removed' : 'Unchanged'}`}
+                                onAccept={() => acceptDiff(processedDiffs[activeChangeId].id)}
+                                onReject={() => rejectDiff(processedDiffs[activeChangeId].id)}
+                            />
+                            )} */}
+                        </span>
+                    )) : <></>
+                ) : (
+                    // Display optimized text directly if showDiffs is false
+                    <span>{optimizedText}</span>
+                )}
+            {/* Positioning the switch at the bottom right corner */}
+            <div className='absolute bottom-0 right-0 p-2 flex items-center text-sm text-gray-500'>
+                <Switch id='show-diffs' checked={showDiffs} onCheckedChange={setShowDiffs} />
+                <label className='ml-2' htmlFor='show-diffs'>Show diffs</label>
+            </div>
         </div>
     );
 };

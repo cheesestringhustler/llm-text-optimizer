@@ -27,7 +27,8 @@ function Editor() {
     const [optimizedText, setOptimizedText] = useState<string>(""); // Stores text changes after optimization
     const [debouncedText, setDebouncedText] = useState(text); // Debounced text for delayed processing
     const [activeChangeId, setActiveChangeId] = useState<number | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingOptimization, setIsLoadingOptimization] = useState(false);
+    const [isLoadingLanguage, setIsLoadingLanguage] = useState(false);
 
     const adaptLanguage: Boolean = true; // Debug flag to adapt language automatically
 
@@ -35,7 +36,8 @@ function Editor() {
     useEffect(() => {
         if (adaptLanguage && text.trim() !== "") {
             const handler = setTimeout(async () => {
-                if (text !== debouncedText) {
+                if (text !== debouncedText && language.code !== "de-ch") {
+                    setIsLoadingLanguage(true);
                     // Fetching language prediction from the server
                     const response = await fetch('/api/language', {
                         method: 'POST',
@@ -47,6 +49,7 @@ function Editor() {
                     const data = await response.json();
                     console.log("language prediction:", data);
                     setLanguage(data);
+                    setIsLoadingLanguage(false);
                     setDebouncedText(text);
                 }
             }, 3000);
@@ -63,7 +66,7 @@ function Editor() {
     // Handler for form submission
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        setIsLoading(true);
+        setIsLoadingOptimization(true);
         // Fetching optimized text from the server
         const response = await fetch('/api/optimize', {
             method: 'POST',
@@ -87,7 +90,7 @@ function Editor() {
         }
 
         setOptimizedText(changes.optimizedText);
-        setIsLoading(false);
+        setIsLoadingOptimization(false);
     };
 
     // Accept all changes handler
@@ -115,6 +118,7 @@ function Editor() {
                         <Button className={`hover:bg-blue-500 ${promptStyle === "informal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("informal")} variant="secondary">Informal 😎</Button>
                     </div>
                     <div className="flex flex-row items-center justify-between gap-2">
+                        {isLoadingLanguage ? <Loader2 className="h-4 w-4 animate-spin" /> : ""}
                         <Select  value={language.code} onValueChange={(value) => setLanguage(commonLanguages.find((lang) => lang.code === value) as Language)}>
                             <SelectTrigger className="w-[250px]">{language.name}</SelectTrigger>
                             <SelectContent>
@@ -172,7 +176,7 @@ function Editor() {
                     <form onSubmit={handleSubmit} className="flex-1 flex flex-col relative">
                         <Textarea className="mb-4 h-[300px]" value={text} onChange={(e) => setText(e.target.value)}></Textarea>
                         <span className="absolute bottom-2 right-2 text-sm text-gray-500">{text.length} characters</span>
-                        <Button className="w-[100px]" disabled={isLoading}>{isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Optimize"}</Button>
+                        <Button className="w-[100px]" disabled={isLoadingOptimization}>{isLoadingOptimization ? <Loader2 className="h-4 w-4 animate-spin" /> : "Optimize"}</Button>
                     </form>
                     
                     {/* Displaying highlighted changes */}

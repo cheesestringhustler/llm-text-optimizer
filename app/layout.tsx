@@ -6,8 +6,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 
 export const metadata: Metadata = {
-  title: "Spell Checker",
-  description: "A simple app to check the spelling and grammar of a text",
+  title: "Text Optimizer",
+  description: "A simple app to optimize the text for better readability",
 };
 
 export default function RootLayout({
