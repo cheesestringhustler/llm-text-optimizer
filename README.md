@@ -28,6 +28,7 @@ The Text Optimizer App offers several key features:
 - **Language Detection and Adaptation**: The app can detect the language of the input text and adapt the optimization process accordingly.
 - **Display of Optimized Text with Highlighted Changes**: After optimization, the app displays the optimized text alongside the original, highlighting the changes made.
 - **Selection of Language and Prompt Style for Customization**: Users can select the language and prompt style (formal, informal, or no style) for the text optimization process.
+- **Text Length Adjustment**: Users can specify a desired text length, and the app will adjust the text accordingly.
 
 ## API Routes
 
@@ -89,5 +90,42 @@ export async function POST(req: Request, res: Response) {
   }
 ```
 
-
 This feature leverages the OpenAI API to analyze the input text and determine its language, which is then used to tailor the text optimization process.
+
+### Text Length Adjustment
+
+The `/api/textlength` route adjusts the length of the input text to meet a specified character count. It accepts parameters such as `text`, `textLength`, and `characterCount` in the request body.
+
+This route uses the OpenAI API to modify the text length while attempting to preserve the original message and tone as closely as possible.
+
+```app/api/language/route.ts
+export async function POST(req: Request, res: Response) {
+  const { text, textLength, characterCount }: RequestBody = await req.json() as RequestBody;
+
+  try {
+    // Construct system prompt with language and gender neutrality consideration
+    let systemPrompt = `You focus on adjusting the length of the text. Make sure to keep the tone and structure of the text the same. Do not make any spelling or grammar mistakes.`;
+    
+    const adjustment = Math.abs(textLength) / 100;
+    const newCharacterCount = Math.round(characterCount * adjustment);
+    // const direction = textLength > 0 ? `longer by ${adjustment}%` : `shorter by ${adjustment}%`;
+    // const userPrompt = `Please make this text ${direction}:\n${text}`;
+    const userPrompt = `The current character count is ${characterCount}. Please adjust the text to have a character count of ${newCharacterCount}:\n${text}`;
+
+    console.log("systemPrompt: "+systemPrompt);
+    console.log("userPrompt: "+userPrompt);
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4-turbo",
+      messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+      temperature: 0.7,
+      max_tokens: 4096,
+    });
+
+    return Response.json({ optimizedText: response.choices[0].message.content });
+  } catch (error) {
+    console.error("Error optimizing text:", error);
+    return Response.json({ error: "Failed to optimize text" }, { status: 500 });
+  }
+}
+```
