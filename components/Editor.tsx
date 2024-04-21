@@ -84,7 +84,7 @@ function Editor() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ text: changes.optimizedText, textLength, characterCount: changes.optimizedText.length, language }),
+                body: JSON.stringify({ text: changes.optimizedText, textLength, characterCount: changes.optimizedText.length }),
             });
             changes = await response.json();
         }

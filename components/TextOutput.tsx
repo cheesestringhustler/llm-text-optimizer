@@ -53,7 +53,7 @@ const TextOutput: React.FC<TextOutputProps> = ({ text, setText, language, optimi
             removed: !!diff.removed,
         }));
         const processed = preprocessDiffs(extendedDiffs);
-        console.log(processed);
+        // console.log(processed);
         setProcessedDiffs(processed);
     }, [optimizedText]); // Re-run effect when optimizedText changes
 
