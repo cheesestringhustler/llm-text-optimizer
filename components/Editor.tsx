@@ -84,7 +84,7 @@ function Editor() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ text: changes.optimizedText, textLength, characterCount: changes.optimizedText.length }),
+                body: JSON.stringify({ text: changes.optimizedText, textLength, characterCount: changes.optimizedText.length, language }),
             });
             changes = await response.json();
         }
@@ -160,8 +160,8 @@ function Editor() {
                                     id="text-length-slider"
                                     className="w-[180px]" 
                                     defaultValue={[0]} 
-                                    min={-100} 
-                                    max={100} 
+                                    min={-90} 
+                                    max={90} 
                                     step={10} 
                                     onValueChange={(value) => setTextLength(value[0])} // Update textLength state based on slider value
                                 />
