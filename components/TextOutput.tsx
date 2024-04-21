@@ -54,12 +54,14 @@ const TextOutput: React.FC<TextOutputProps> = ({ text, setText, language, optimi
         setProcessedDiffs(processed);
     }, [optimizedText]); // Dependency array, re-run effect when optimizedText changes
 
-    if (!optimizedText) return <></>; // Return empty fragment if there's no optimized text
+    // if (!optimizedText) return <></>; // Return empty fragment if there's no optimized text
 
     return (
-        <div>
-            {processedDiffs.map((part, index) => (
-                <span key={index}
+        <div className='min-h-[300px] h-[300px] overflow-auto border border-gray-200 rounded-md mb-4 bg-gray-100'>
+            {
+            optimizedText !== "" ? processedDiffs.map((part, index) => (
+                <span
+                    key={index}
                     style={{ backgroundColor: part.modified ? 'orange' : part.added ? 'lightgreen' : part.removed ? 'salmon' : 'transparent' }}
                     onMouseEnter={() => setActiveChangeId(index)}
                     onMouseLeave={() => setActiveChangeId(null)}
@@ -75,7 +77,7 @@ const TextOutput: React.FC<TextOutputProps> = ({ text, setText, language, optimi
                         />
                     )} */}
                 </span>
-            ))}
+            )) : <></>}
         </div>
     );
 };

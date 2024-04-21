@@ -1,95 +1,95 @@
-.editor {
-    width: 100%;
-    height: 100%;
-    background-color: #c5c5c5;
-    max-width: 950px;
-}
+// .editor {
+//     width: 100%;
+//     height: 100%;
+//     background-color: #c5c5c5;
+//     max-width: 950px;
+// }
 
-.controls {
-    background-color: #e5e5e5;
-    width: 100%;
-    display: flex;
-    justify-content: left;
-    align-items: center;
-    .option {
-        margin-right: 1rem;
+// .controls {
+//     background-color: #e5e5e5;
+//     width: 100%;
+//     display: flex;
+//     justify-content: left;
+//     align-items: center;
+//     .option {
+//         margin-right: 1rem;
 
-        .active {
-            background-color: #0070f3;
-            color: white;
-        }
-    }
-}
+//         .active {
+//             background-color: #0070f3;
+//             color: white;
+//         }
+//     }
+// }
 
-.workarea {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: top;
+// .workarea {
+//     display: flex;
+//     flex-direction: row;
+//     justify-content: space-between;
+//     align-items: top;
 
-    .textcontainer {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
+//     .textcontainer {
+//         width: 100%;
+//         display: flex;
+//         flex-direction: row;
 
-        .textinput textarea,
-        .textoutput {
-            min-width: 450px;
-            min-height: 150px;
-        }
+//         .textinput textarea,
+//         .textoutput {
+//             min-width: 450px;
+//             min-height: 150px;
+//         }
 
-        .textinput {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-        }
+//         .textinput {
+//             display: flex;
+//             flex-direction: column;
+//             flex: 1;
+//         }
 
-        .textoutput {
-            background-color: #f0f0f0;
-            flex: 1;
-            .highlight {
-                background-color: yellow;
-                cursor: pointer;
-            }
+//         .textoutput {
+//             background-color: #f0f0f0;
+//             flex: 1;
+//             .highlight {
+//                 background-color: yellow;
+//                 cursor: pointer;
+//             }
 
-            .highlight:hover {
-                background-color: orange;
-            }
-        }
+//             .highlight:hover {
+//                 background-color: orange;
+//             }
+//         }
 
-        button {
-            width: 100px;
-            height: 30px;
-        }
-    }
+//         button {
+//             width: 100px;
+//             height: 30px;
+//         }
+//     }
 
-    // .textcontainer {
-    //     .textinput {
-    //         width: 100%;
-    //         height: 100%;
-    //         textarea {
-    //             min-width: 450px;
-    //             min-height: 150px;
-    //         }
-    //     }
+//     // .textcontainer {
+//     //     .textinput {
+//     //         width: 100%;
+//     //         height: 100%;
+//     //         textarea {
+//     //             min-width: 450px;
+//     //             min-height: 150px;
+//     //         }
+//     //     }
 
-    //     .textoutput {
-    //         width: 100%;
-    //         height: 100%;
-    //         .highlight {
-    //             background-color: yellow;
-    //             cursor: pointer;
-    //         }
+//     //     .textoutput {
+//     //         width: 100%;
+//     //         height: 100%;
+//     //         .highlight {
+//     //             background-color: yellow;
+//     //             cursor: pointer;
+//     //         }
 
-    //         .highlight:hover {
-    //             background-color: orange;
-    //         }
-    //     }
-    // }
+//     //         .highlight:hover {
+//     //             background-color: orange;
+//     //         }
+//     //     }
+//     // }
 
-    .optimizations {
-        width: 100%;
-        height: 100%;
-        background-color: #f0f0f0;
-    }
-}
+//     .optimizations {
+//         width: 100%;
+//         height: 100%;
+//         background-color: #f0f0f0;
+//     }
+// }

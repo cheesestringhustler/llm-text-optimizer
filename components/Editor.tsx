@@ -4,6 +4,17 @@ import styles from "./Editor.module.scss";
 import commonLanguages from "../languages.json";
 import TextOutput from './TextOutput';
 
+import { Button } from "@/components/ui/button"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox" // Import Checkbox from @shadcn/ui
+import { Textarea } from "@/components/ui/textarea"
+
 function Editor() {
     const [text, setText] = useState("She dont likes go too the store on sundays;"); // Initial text input by the user
     const [language, setLanguage] = useState<Language>(commonLanguages[2]); // Selected language, default is English
@@ -51,7 +62,7 @@ function Editor() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ text, language }),
+            body: JSON.stringify({ text, language, promptStyle }),
         });
         const changes = await response.json();
         setOptimizedText(changes.optimizedText);
@@ -59,56 +70,61 @@ function Editor() {
 
     // Accept all changes handler
     const handleAcceptAll = () => {
-        setText(optimizedText); // Update text with optimizedText
+        if (optimizedText !== "") {
+            setText(optimizedText); // Update text with optimizedText
+            setOptimizedText("");
+        }
     };
 
     // Reject all changes handler
     const handleRejectAll = () => {
-        setOptimizedText(text); // Keep the original text, discard changes
+        setOptimizedText(""); // Keep the original text, discard changes
     };
 
     return (
-        <div className={styles.editor}>
+        <div className="container mx-auto px-4">
 
             {/* Control parameters to adjust the prompt style and language */}
-            <div className={styles.controls}>
-                <div className={styles.option}>
-                    <button className={promptStyle === "no-style" ? styles.active : ""} onClick={() => setPromptStyle("no-style")}>No Style</button>
-                    <button className={promptStyle === "formal" ? styles.active : ""} onClick={() => setPromptStyle("formal")}>Formal</button>
-                    <button className={promptStyle === "informal" ? styles.active : ""} onClick={() => setPromptStyle("informal")}>Informal</button>
+            <div className="w-full flex items-center justify-between border-b border-gray-200 pb-4">
+                <div>
+                    <Button className={`hover:bg-blue-500 mr-2 ${promptStyle === "no-style" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("no-style")} variant="secondary">No Style</Button>
+                    <Button className={`hover:bg-blue-500 mr-2 ${promptStyle === "formal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("formal")} variant="secondary">Formal 🧐</Button>
+                    <Button className={`hover:bg-blue-500 ${promptStyle === "informal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("informal")} variant="secondary">Informal 😎</Button>
                 </div>
-                <select className={styles.option} value={language.code} onChange={(e) => setLanguage(commonLanguages.find((lang) => lang.code === e.target.value) as Language)}>
-                    {commonLanguages.map(lang => (
-                        <option key={lang.code} value={lang.code}>{lang.name}</option> // Mapping language options to select element
-                    ))}
-                </select>
-                {/* Checkbox for Swiss German option */}
-                <div className={styles.option}>
-                    <label>
-                        <input 
-                            type="checkbox" 
-                            onChange={(e) => setLanguage(commonLanguages.find((lang) => lang.code === (e.target.checked ? "de-ch" : "de")) as Language)} 
-                            checked={language.code === "de-ch"} 
-                            disabled={language.code !== "de" && language.code !== "de-ch"} />
+                {/* Replacing native select with @shadcn/ui select */}
+                <Select  value={language.code} onValueChange={(value) => setLanguage(commonLanguages.find((lang) => lang.code === value) as Language)}>
+                    <SelectTrigger className="w-[250px]">{language.name}</SelectTrigger>
+                    <SelectContent>
+                        {commonLanguages.map(lang => (
+                            <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem> // Mapping language options to SelectItem
+                        ))}
+                    </SelectContent>
+                </Select>
+                {/* Checkbox for Swiss German option replaced with @shadcn/ui checkbox */}
+                <div className="flex items-center gap-2">
+                    <Checkbox 
+                        id="swiss-german"
+                        checked={language.code === "de-ch"} 
+                        onCheckedChange={(checked) => setLanguage(commonLanguages.find((lang) => lang.code === (checked ? "de-ch" : "de")) as Language)}
+                        disabled={language.code !== "de" && language.code !== "de-ch"}
+                    />
+                    <label htmlFor="swiss-german" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                         Swiss German
                     </label>
                 </div>
             </div>
 
             {/* Main user interaction to enter text, submit and integrate suggestions */}
-            <div className={styles.workarea}>
-
-                <div className={styles.textcontainer}>
-                    <form onSubmit={handleSubmit} className={styles.textinput}>
-                        <button>Check</button>
-                        <textarea value={text} onChange={(e) => setText(e.target.value)}></textarea>
+            <div className="w-full pt-4">
+                <div className="w-full flex flex-row gap-4"> {/* Added gap class for spacing between form and text output */}
+                    <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
+                        <Textarea className="mb-4 h-[300px]" value={text} onChange={(e) => setText(e.target.value)}></Textarea>
+                        <Button className="w-[100px]">Check</Button>
                     </form>
                     
                     {/* Displaying highlighted changes */}
-                    <div className={styles.textoutput}>
-                        <button onClick={handleAcceptAll}>Accept All</button> {/* Accept all changes */}
-                        <button onClick={handleRejectAll}>Reject All</button> {/* Reject all changes */}
-                        <TextOutput 
+                    <div className="flex-1">
+                        <TextOutput
                           text={text} 
                           setText={setText}
                           language={language}
@@ -117,6 +133,8 @@ function Editor() {
                           activeChangeId={activeChangeId} 
                           setActiveChangeId={setActiveChangeId} 
                         />
+                        <Button className="w-[100px]" onClick={handleAcceptAll}>Accept All</Button> {/* Accept all changes */}
+                        <Button className="w-[100px]" onClick={handleRejectAll}>Reject All</Button> {/* Reject all changes */}
                     </div>
                 </div>
             </div>
