@@ -27,9 +27,11 @@ The Text Optimizer App is designed to enhance text readability by correcting spe
 
    ```plaintext
    OPENAI_API_KEY=your_openai_api_key_here
+   ORGANIZATION=your_organization_here
+   PROJECT=your_project_here
    ```
 
-   Replace `your_openai_api_key_here` with your actual OpenAI API key.
+   Replace `your_openai_api_key_here`, `your_organization_here`, and `your_project_here` with your actual OpenAI API key, organization id, and project id.
 
 ## Running the Application
 
