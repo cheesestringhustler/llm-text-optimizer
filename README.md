@@ -1,167 +1,72 @@
-# Text Optimizer App
+# Updated README for Text Optimizer App
 
-This project is a Next.js application designed to optimize text by correcting spelling, grammar, and punctuation errors. It leverages the OpenAI API to analyze and suggest improvements to the text input by the user.
+## Running the Application
 
-## Features
+To run the Text Optimizer App in development mode, use Yarn as the preferred package manager. First, ensure you have Yarn installed on your system. If not, you can install it by following the instructions on the [Yarn website](https://yarnpkg.com/getting-started/install).
 
-- Text input for optimization
-- Language detection and adaptation
-- Display of optimized text with highlighted changes
-- Selection of language and prompt style for customization
+Before starting the application, you need to create a [.env.local](file:///Users/manuellampert/ocean/freelance/morrow-ventures/llm-text-optimizer/.env.local#1%2C1-1%2C1) file in the root directory of the project. This file should contain your OpenAI API key, which is required for the text optimization and language detection features to work. Your [.env.local](file:///Users/manuellampert/ocean/freelance/morrow-ventures/llm-text-optimizer/.env.local#1%2C1-1%2C1) file should look like this:
 
-## Getting Started
+```plaintext
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
-To run the development server:
+Replace `your_openai_api_key_here` with your actual OpenAI API key.
+
+To start the development server, run:
 
 ```bash
-npm run dev
-# or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Project Structure
+## Features
 
-- `app/`: Contains the main application components and pages.
-- `components/`: Reusable components like `Editor`, `Controls`, and `Popover`.
-- `public/`: Static assets like images and icons.
-- `styles/`: SCSS modules for styling components.
-- `types/`: TypeScript interfaces and types for structured data.
-- `api/`: Backend API routes for language detection and text optimization.
+The Text Optimizer App offers several key features:
 
-## Key Components
-
-### Editor
-
-The `Editor` component allows users to input text for optimization. It displays the optimized text with changes highlighted.
-
-
-```157:184:components/Editor.tsx
-function Editor() {
-            ...
-            </div>
-
-            {/* Main user interaction to enter text, submit and integrate suggestions */}
-            <div className={styles.workarea}>
-
-                <div className={styles.textcontainer}>
-                    <form onSubmit={handleSubmit} className={styles.textinput}>
-                        <textarea value={text} onChange={(e) => setText(e.target.value)}></textarea>
-                        <button>Check</button>
-                    </form>
-                    
-                    {/* Displaying highlighted changes */}
-                    <div className={styles.textoutput}>
-                        {renderDetailedDiff()}
-                    </div>
-                </div>
-
-                {/* Listing the possible changes */}
-                <div className={styles.optimizations}>
-                    <ul>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    );
-}
-```
-
-
-### Controls
-
-`Controls` provide options to adjust the prompt style and language for text optimization.
-
-
-```44:67:components/Controls.tsx
-function Controls({ text, setText, languageCode, setLanguageCode, promptStyle, setPromptStyle }: ControlsProps) {
-    ...
-    return (
-            <div className={styles.controls}>
-                <div className={styles.option}>
-                    <button className={promptStyle === "no-style" ? styles.active : ""} onClick={() => setPromptStyle("no-style")}>No Style</button>
-                    <button className={promptStyle === "formal" ? styles.active : ""} onClick={() => setPromptStyle("formal")}>Formal</button>
-                    <button className={promptStyle === "informal" ? styles.active : ""} onClick={() => setPromptStyle("informal")}>Informal</button>
-                </div>
-                <select className={styles.option} value={languageCode} onChange={(e) => setLanguageCode(e.target.value)}>
-                    {commonLanguages.map(lang => (
-                        <option key={lang.code} value={lang.code}>{lang.name}</option> // Mapping language options to select element
-                    ))}
-                </select>
-                {/* Checkbox for Swiss German option */}
-                <div className={styles.option}>
-                    <label>
-                        <input type="checkbox" onChange={(e) => setLanguageCode(e.target.checked ? "de-ch" : "de")} checked={languageCode === "de-ch"} disabled={languageCode !== "de" && languageCode !== "de-ch"} />
-                        Swiss German
-                    </label>
-                </div>
-            </div>
-    );
-}
-```
-
-
-### Popover
-
-Displays messages or suggestions when hovering over highlighted text changes.
-
-
-```9:16:components/Popover.tsx
-const Popover: React.FC<PopoverProps> = ({ message }) => {
-    return (
-        <div className={styles.popover}>
-            <p>{message}</p>
-            {/* <button onClick={onAccept}>Accept</button> */}
-        </div>
-    );
-};
-```
-
+- **Text Input for Optimization**: Users can input text that they want to optimize.
+- **Language Detection and Adaptation**: The app can detect the language of the input text and adapt the optimization process accordingly.
+- **Display of Optimized Text with Highlighted Changes**: After optimization, the app displays the optimized text alongside the original, highlighting the changes made.
+- **Selection of Language and Prompt Style for Customization**: Users can select the language and prompt style (formal, informal, or no style) for the text optimization process.
 
 ## API Routes
 
 ### Optimize Text
 
-Processes the text input by the user and returns optimized text.
+The `/api/optimize` route processes the text input by the user and returns optimized text. It accepts parameters such as `text`, `language`, `promptStyle`, and `isGenderNeutral` in the request body.
 
 
-```7:28:app/api/optimize/route.ts
+```7:40:app/api/optimize/route.ts
 export async function POST(req: Request, res: Response) {
-  const { text, language } = await req.json();
+  const { text, language, promptStyle, isGenderNeutral } = await req.json() as { text: string, language: Language, promptStyle: string, isGenderNeutral: boolean };
 
   try {
-const systemPrompt = `
-Correct the text to have proper spelling, grammar and punctation.
-If the text varies from ${language} adapt it accordingly.
-`;
-    const userPrompt = `Correct the text to have proper spelling, grammar and punctation:
-${text}`
-    const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo",
-      messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-      temperature: 0.7,
-      max_tokens: 4096,
-    });
-    return Response.json({ optimizedText: response.choices[0].message.content });
-  } catch (error) {
-    console.error("Error optimizing text:", error);
-    return Response.json({ error: "Failed to optimize text" }, { status: 500 });
-  }
-}
+    // Construct system prompt with language and gender neutrality consideration
+    let systemPrompt = `Correct the text to have proper spelling, grammar, and punctuation.\nThe language of the text is ${language.name}.\n`;
+    if (isGenderNeutral) {
+      systemPrompt += "Ensure the text is gender-neutral.\n";
+    }
+
+    let userPrompt = `Correct the text to have proper spelling, grammar, and punctuation:\n${text}`;
+    switch (promptStyle) {
+      case "formal":
+        userPrompt = `Please rewrite the following text in a formal writing style. Focus on using standard grammar and complex sentence structures, employ a precise and academic vocabulary, and ensure the tone remains objective and impersonal. Avoid colloquialisms, slang, and contractions, and structure the text with a clear introduction, body, and conclusion. Make sure to include proper spelling, grammar, and punctuation:\n${text}`;
+        break;
+      case "informal":
+        userPrompt = `Please convert the following text into an informal writing style. Use colloquial language, include idioms and contractions, and adopt a personal and subjective tone. The structure should be flexible and conversational. Feel free to adjust grammar and punctuation to suit a more casual and relaxed tone:\n${text}`;
+        break;
+    }
 ```
 
 
+This route uses the OpenAI API to correct spelling, grammar, and punctuation errors, and can adapt the text based on the selected language and prompt style.
+
 ### Language Detection
 
-Detects the language of the input text.
+The `/api/language` route detects the language of the input text. It expects a `text` parameter in the request body and returns the detected language in ISO 639-1 format.
 
 
-```7:25:app/api/language/route.ts
+```8:27:app/api/language/route.ts
 export async function POST(req: Request, res: Response) {
   const { text } = await req.json();
 
@@ -174,24 +79,15 @@ export async function POST(req: Request, res: Response) {
       temperature: 0.8,
       max_tokens: 4096,
     });
-    
-    return Response.json(response.choices[0].message.content);
+
+    const languageCode = response.choices[0].message.content!;
+    const language = commonLanguages.find((lang) => lang.code === languageCode) as Language;
+    return Response.json(language);
   } catch (error) {
     console.error("Error detecting language:", error);
     return Response.json({ error: "Failed to detect language" }, { status: 500 });
   }
-}
 ```
 
 
-## Deployment
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
-
-## Contributing
-
-Contributions are welcome! Please check out the [Next.js GitHub repository](https://github.com/vercel/next.js/) for guidelines on contributing.
-
-## License
-
-This project is open-source and available under the MIT license.
+This feature leverages the OpenAI API to analyze the input text and determine its language, which is then used to tailor the text optimization process.
