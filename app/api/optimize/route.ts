@@ -5,17 +5,19 @@ const openai = new OpenAI({
 });
 
 export async function POST(req: Request, res: Response) {
-  const { text, language } = await req.json();
+  const { text, language } = await req.json() as { text: string, language: Language };
 
   try {
-const systemPrompt = `
-Correct the text to have proper spelling, grammar and punctation.
-If the text varies from ${language} adapt it accordingly.
+    const systemPrompt = 
+`Correct the text to have proper spelling, grammar and punctation.
+The language of the text is ${language.name}.
 `;
-    const userPrompt = `Correct the text to have proper spelling, grammar and punctation:
+    const userPrompt = 
+`Correct the text to have proper spelling, grammar and punctation:
 ${text}`
+
     const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo",
+      model: "gpt-3.5-turbo",
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
       temperature: 0.7,
       max_tokens: 4096,

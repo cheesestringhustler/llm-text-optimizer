@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import commonLanguages from "../../../languages.json";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -16,8 +17,10 @@ export async function POST(req: Request, res: Response) {
       temperature: 0.8,
       max_tokens: 4096,
     });
-    
-    return Response.json(response.choices[0].message.content);
+
+    const languageCode = response.choices[0].message.content!;
+    const language = commonLanguages.find((lang) => lang.code === languageCode) as Language;
+    return Response.json(language);
   } catch (error) {
     console.error("Error detecting language:", error);
     return Response.json({ error: "Failed to detect language" }, { status: 500 });
