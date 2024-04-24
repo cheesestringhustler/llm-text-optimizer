@@ -134,9 +134,9 @@ function Editor() {
             <div className="w-full flex flex-col border-b border-gray-200 pb-4">
                 <div className="flex flex-col md:flex-row items-center justify-between pb-4">
                     <div className="flex flex-wrap justify-center gap-2 mb-4 md:mb-0">
-                        <Button className={`hover:bg-blue-500 mr-2 ${promptStyle === "no-style" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("no-style")} variant="secondary">No Style</Button>
-                        <Button className={`hover:bg-blue-500 mr-2 ${promptStyle === "formal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("formal")} variant="secondary">Formal 🧐</Button>
-                        <Button className={`hover:bg-blue-500 ${promptStyle === "informal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("informal")} variant="secondary">Informal 😎</Button>
+                        <Button className={`hover:bg-blue-500 hover:text-white mr-1 ${promptStyle === "no-style" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("no-style")} variant="outline">Default Style</Button>
+                        <Button className={`hover:bg-blue-500 hover:text-white mr-1 ${promptStyle === "formal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("formal")} variant="outline">Formal 🧐</Button>
+                        <Button className={`hover:bg-blue-500 hover:text-white ${promptStyle === "informal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("informal")} variant="outline">Informal 😎</Button>
                     </div>
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         {isLoadingLanguage ? <Loader2 className="h-4 w-4 animate-spin" /> : ""}
