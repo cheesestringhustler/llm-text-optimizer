@@ -58,33 +58,27 @@ const TextOutput: React.FC<TextOutputProps> = ({ text, setText, language, optimi
     }, [optimizedText]); // Re-run effect when optimizedText changes
 
     return (
-        <div className='min-h-[300px] h-[300px] overflow-auto border border-gray-200 rounded-md mb-4 bg-gray-100 relative'>
-            {
-                showDiffs ? (
-                    optimizedText !== "" ? processedDiffs.map((part, index) => (
-                        <span
-                            key={index}
-                            style={{ backgroundColor: part.modified ? 'orange' : part.added ? 'lightgreen' : part.removed ? 'salmon' : 'transparent' }}
-                            onMouseEnter={() => setActiveChangeId(index)}
-                            onMouseLeave={() => setActiveChangeId(null)}
-                            title={part.reason ? part.reason : ''}>
-                            {part.value}
-                            {/* Show popover only if part is modified, added, or removed */}
-                            {/* TODO: add popover to accept/reject changes with reason */}
-                            {/* {activeChangeId === index && (part.modified || part.added || part.removed) && (
-                            <Popover
-                                message={`Change type: ${processedDiffs[activeChangeId].modified ? 'Modified' : processedDiffs[activeChangeId].added ? 'Added' : processedDiffs[activeChangeId].removed ? 'Removed' : 'Unchanged'}`}
-                                onAccept={() => acceptDiff(processedDiffs[activeChangeId].id)}
-                                onReject={() => rejectDiff(processedDiffs[activeChangeId].id)}
-                            />
-                            )} */}
-                        </span>
-                    )) : <></>
-                ) : (
-                    // Display optimized text directly if showDiffs is false
-                    <span>{optimizedText}</span>
-                )}
-            {/* Positioning the switch at the bottom right corner */}
+        <div className='min-h-[300px] h-[300px] overflow-hidden border border-gray-200 rounded-md mb-4 bg-gray-100 relative'>
+            <div className='h-full overflow-auto p-2 text-sm'>
+                {
+                    showDiffs ? (
+                        optimizedText !== "" ? processedDiffs.map((part, index) => (
+                            <span
+                                key={index}
+                                style={{ backgroundColor: part.modified ? 'orange' : part.added ? 'lightgreen' : part.removed ? 'salmon' : 'transparent' }}
+                                onMouseEnter={() => setActiveChangeId(index)}
+                                onMouseLeave={() => setActiveChangeId(null)}
+                                title={part.reason ? part.reason : ''}>
+                                {part.value}
+                            </span>
+                        )) : <></>
+                    ) : (
+                        // Display optimized text directly if showDiffs is false
+                        <span>{optimizedText}</span>
+                    )
+                }
+            </div>
+            {/* Positioning the switch at the bottom right corner, fixed within the component */}
             <div className='absolute bottom-0 right-0 p-2 flex items-center text-sm text-gray-500'>
                 <Switch id='show-diffs' checked={showDiffs} onCheckedChange={setShowDiffs} />
                 <label className='ml-2' htmlFor='show-diffs'>Show diffs</label>

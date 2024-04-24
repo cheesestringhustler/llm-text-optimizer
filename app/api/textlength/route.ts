@@ -18,7 +18,7 @@ export async function POST(req: Request, res: Response) {
 
   try {
     // Construct system prompt with language and gender neutrality consideration
-    let systemPrompt = `Adjusting the length of the text. Make sure to keep the tone and structure of the text the same. Do not make any spelling or grammar mistakes. Only return the text.`;
+    let systemPrompt = `Adjusting the length of the text. Make sure to keep the tone and structure of the text the same. Do not make any spelling or grammar mistakes. Keep the language ${language.name} as is. Only return the text.`;
     if (language.code.startsWith("de") || language.code.startsWith("ch")) {
       systemPrompt = `Anpassen der Textlänge. Achten Sie darauf, dass Ton und Struktur des Textes gleich bleiben. Machen Sie keine Rechtschreib- oder Grammatikfehler. Geben Sie nur den Text zurück.`;
     }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styles from "./Editor.module.scss";
 import commonLanguages from "../languages.json";
 import TextOutput from './TextOutput';
@@ -71,10 +71,14 @@ function Editor() {
         }
     }, [text, debouncedText]);
 
-    
     // Handler for form submission
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        optimizeText();
+    };
+
+    // Function to optimize text
+    const optimizeText = async () => {
         setIsLoadingOptimization(true);
         // Fetching optimized text from the server
         const response = await fetch('/api/optimize', {
@@ -115,20 +119,28 @@ function Editor() {
         setOptimizedText(""); // Keep the original text, discard changes
     };
 
+    // Handle key press in textarea
+    const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            optimizeText();
+        }
+    }, [text, language, promptStyle, isGenderNeutral]);
+
     return (
         <div className="container mx-auto px-4 max-w-[1000px]">
 
             {/* Control parameters to adjust the prompt style and language */}
-            <div className="w-full flex flex-col  border-b border-gray-200 pb-4">
-                <div className="flex flex-row items-center justify-between pb-4">
-                    <div>
+            <div className="w-full flex flex-col border-b border-gray-200 pb-4">
+                <div className="flex flex-col md:flex-row items-center justify-between pb-4">
+                    <div className="flex flex-wrap justify-center gap-2 mb-4 md:mb-0">
                         <Button className={`hover:bg-blue-500 mr-2 ${promptStyle === "no-style" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("no-style")} variant="secondary">No Style</Button>
                         <Button className={`hover:bg-blue-500 mr-2 ${promptStyle === "formal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("formal")} variant="secondary">Formal 🧐</Button>
                         <Button className={`hover:bg-blue-500 ${promptStyle === "informal" ? "bg-blue-500 text-white" : ""}`} onClick={() => setPromptStyle("informal")} variant="secondary">Informal 😎</Button>
                     </div>
-                    <div className="flex flex-row items-center justify-between gap-2">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         {isLoadingLanguage ? <Loader2 className="h-4 w-4 animate-spin" /> : ""}
-                        <Select  value={language.code} onValueChange={(value) => setLanguage(commonLanguages.find((lang) => lang.code === value) as Language)}>
+                        <Select value={language.code} onValueChange={(value) => setLanguage(commonLanguages.find((lang) => lang.code === value) as Language)}>
                             <SelectTrigger className="w-[250px]">{language.name}</SelectTrigger>
                             <SelectContent>
                                 {commonLanguages.map(lang => (
@@ -141,7 +153,6 @@ function Editor() {
                                 id="swiss-german"
                                 checked={language.code === "ch-de"} 
                                 onCheckedChange={(checked) => setLanguage(commonLanguages.find((lang) => lang.code === (checked ? "ch-de" : "de")) as Language)}
-                                // disabled={language.code !== "de" && language.code !== "ch-de"}
                             />
                             <label htmlFor="swiss-german" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                 Swiss German
@@ -150,7 +161,7 @@ function Editor() {
                     </div>
                 </div>
                 <div>
-                    <div className="flex items-center gap-2 justify-between">
+                    <div className="flex flex-col md:flex-row items-center gap-4 justify-between">
                         <div className="flex items-center gap-2">
                             <Checkbox 
                                 id="gender-neutral"
@@ -161,13 +172,13 @@ function Editor() {
                                 Gender Neutral
                             </label>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col md:flex-row items-center gap-4">
                             <label htmlFor="text-length-slider" className="text-sm font-medium leading-none">
                                 shorter {`<->`} longer ({textLength}%)
                             </label>
                             <Slider 
                                     id="text-length-slider"
-                                    className="w-[180px]" 
+                                    className="w-[180px] md:w-[180px]" 
                                     defaultValue={[0]} 
                                     min={-90} 
                                     max={90} 
@@ -181,9 +192,9 @@ function Editor() {
 
             {/* Main user interaction to enter text, submit and integrate suggestions */}
             <div className="w-full pt-4">
-                <div className="w-full flex flex-row gap-4"> {/* Added gap class for spacing between form and text output */}
+                <div className="w-full flex flex-col md:flex-row gap-4"> {/* Responsive layout for mobile and desktop */}
                     <form onSubmit={handleSubmit} className="flex-1 flex flex-col relative">
-                        <Textarea className="mb-4 h-[300px]" value={text} onChange={(e) => setText(e.target.value)}></Textarea>
+                        <Textarea className="mb-4 h-[300px]" value={text} onChange={(e) => setText(e.target.value)} onKeyDown={handleKeyPress}></Textarea>
                         <span className="absolute bottom-2 right-2 text-sm text-gray-500">{text.length} characters</span>
                         <Button className="w-[100px]" disabled={isLoadingOptimization}>{isLoadingOptimization ? <Loader2 className="h-4 w-4 animate-spin" /> : "Optimize"}</Button>
                     </form>
@@ -200,8 +211,8 @@ function Editor() {
                           setActiveChangeId={setActiveChangeId} 
                         />
                         <span className="absolute bottom-2 right-2 text-sm text-gray-500">{optimizedText.length} characters</span>
-                        <Button className="w-[100px]" onClick={handleAcceptAll}>Accept All</Button> {/* Accept all changes */}
-                        <Button className="w-[100px]" onClick={handleRejectAll}>Reject All</Button> {/* Reject all changes */}
+                        <Button className="w-[100px]" onClick={handleAcceptAll}>Accept</Button> {/* Accept all changes */}
+                        <Button className="w-[100px]" onClick={handleRejectAll}>Reject</Button> {/* Reject all changes */}
                     </div>
                 </div>
             </div>
