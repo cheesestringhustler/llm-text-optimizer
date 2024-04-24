@@ -18,8 +18,8 @@ import { Slider } from "@/components/ui/slider"
 import { Loader2 } from "lucide-react"
 
 function Editor() {
-    const [text, setText] = useState("She dont likes go too the store on sundays;"); // Initial text input by the user
-    const [language, setLanguage] = useState<Language>(commonLanguages[2]); // Selected language, default is English
+    const [text, setText] = useState("Er geht Sonntags nicht gerne einkaufen;"); // Initial text input by the user
+    const [language, setLanguage] = useState<Language>(commonLanguages[0]); // Selected language, default is English
     const [promptStyle, setPromptStyle] = useState("no-style"); // Style of the prompt
     const [isGenderNeutral, setIsGenderNeutral] = useState<boolean>(false); // State to manage gender-neutral option
     const [textLength, setTextLength] = useState(0);
@@ -36,23 +36,32 @@ function Editor() {
     useEffect(() => {
         if (adaptLanguage && text.trim() !== "") {
             const handler = setTimeout(async () => {
-                if (text !== debouncedText && language.code !== "de-ch") {
+                if (text !== debouncedText && language.code !== "ch-de") {
                     setIsLoadingLanguage(true);
                     // Fetching language prediction from the server
-                    const response = await fetch('/api/language', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ text }),
-                    });
-                    const data = await response.json();
-                    console.log("language prediction:", data);
-                    setLanguage(data);
-                    setIsLoadingLanguage(false);
-                    setDebouncedText(text);
+                    try {
+                        const response = await fetch('/api/language', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ text }),
+                        });
+                        if (!response.ok) {
+                            // throw new Error(`HTTP error! status: ${response.status}`);
+                        } else {
+                            const data = await response.json();
+                            console.log("language prediction:", data);
+                            setLanguage(data);
+                        }
+                    } catch (error) {
+                        // console.warn("Failed to fetch language prediction:", error);
+                    } finally {
+                        setIsLoadingLanguage(false);
+                        setDebouncedText(text);
+                    }
                 }
-            }, 3000);
+            }, 1500);
     
             return () => {
                 clearTimeout(handler);
@@ -73,7 +82,7 @@ function Editor() {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ text, language, promptStyle, isGenderNeutral, textLength }),
+            body: JSON.stringify({ text, language, promptStyle, isGenderNeutral }),
         });
         let changes = await response.json();
 
@@ -84,7 +93,7 @@ function Editor() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ text: changes.optimizedText, textLength, characterCount: changes.optimizedText.length }),
+                body: JSON.stringify({ text: changes.optimizedText, textLength, characterCount: changes.optimizedText.length, language }),
             });
             changes = await response.json();
         }
@@ -130,9 +139,9 @@ function Editor() {
                         <div className="flex items-center gap-2">
                             <Checkbox 
                                 id="swiss-german"
-                                checked={language.code === "de-ch"} 
-                                onCheckedChange={(checked) => setLanguage(commonLanguages.find((lang) => lang.code === (checked ? "de-ch" : "de")) as Language)}
-                                disabled={language.code !== "de" && language.code !== "de-ch"}
+                                checked={language.code === "ch-de"} 
+                                onCheckedChange={(checked) => setLanguage(commonLanguages.find((lang) => lang.code === (checked ? "ch-de" : "de")) as Language)}
+                                // disabled={language.code !== "de" && language.code !== "ch-de"}
                             />
                             <label htmlFor="swiss-german" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                 Swiss German

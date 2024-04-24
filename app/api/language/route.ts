@@ -10,7 +10,7 @@ export async function POST(req: Request, res: Response) {
 
   try {
     const systemPrompt = `Return the language in ISO 639-1 format. For example, if the language is English, return "en".`;
-    const userPrompt = `${text}`
+    const userPrompt = `Return the language in ISO 639-1 format for following text:\n${text}`
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
