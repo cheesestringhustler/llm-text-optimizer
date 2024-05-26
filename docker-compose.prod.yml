@@ -1,0 +1,35 @@
+services:
+  traefik:
+    command:
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "443:443"
+    volumes:
+      - ./letsencrypt:/letsencrypt
+
+  nextjs:
+    labels:
+      - "traefik.http.routers.nextjs.rule=Host(`${HOST_ADDRESS}`)"
+      - "traefik.http.routers.nextjs.entrypoints=websecure"
+      - "traefik.http.routers.nextjs.tls=true"
+      - "traefik.http.routers.nextjs.tls.certresolver=myresolver"
+
+  # prometheus:
+  #   labels:
+  #     - "traefik.http.routers.prometheus.rule=Host(`prometheus.to.artificial.li`)"
+  #     - "traefik.http.routers.prometheus.entrypoints=websecure"
+  #     - "traefik.http.routers.prometheus.tls=true"
+  #     - "traefik.http.routers.prometheus.tls.certresolver=myresolver"
+
+  # grafana:
+  #   labels:
+  #     - "traefik.http.routers.grafana.rule=Host(`grafana.to.artificial.li`)"
+  #     - "traefik.http.routers.grafana.entrypoints=websecure"
+  #     - "traefik.http.routers.grafana.tls=true"
+  #     - "traefik.http.routers.grafana.tls.certresolver=myresolver"
+
+volumes:
+  letsencrypt:
