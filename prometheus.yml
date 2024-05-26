@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  - job_name: 'nextjs'
+    static_configs:
+      - targets: ['nextjs:3000']
+        labels:
+          group: 'nextjs'
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - target_label: __address__
+        replacement: nextjs:3000
+      - source_labels: [__param_target]
+        target_label: __metrics_path__
+        replacement: /api/metrics
+
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik:8082']
