@@ -86,6 +86,7 @@ function Editor() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`
             },
             body: JSON.stringify({ text, language, promptStyle, isGenderNeutral }),
         });
@@ -97,6 +98,7 @@ function Editor() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`
                 },
                 body: JSON.stringify({ text: changes.optimizedText, textLength, characterCount: changes.optimizedText.length, language }),
             });
