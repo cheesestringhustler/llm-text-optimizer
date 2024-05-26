@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import commonLanguages from "../../../languages.json";
+import { httpRequestCounter, countTokens } from "../../utils/metrics";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -20,9 +21,18 @@ export async function POST(req: Request, res: Response) {
       max_tokens: 4096,
     });
 
-    const languageCode = response.choices[0].message.content!;
-    const language = commonLanguages.find((lang) => lang.code === languageCode) as Language;
-    return Response.json(language);
+    const languageCode = response.choices[0].message.content;
+    if (languageCode !== null) {
+      countTokens(systemPrompt, "system", { code: languageCode, name: "null" }, req.url);
+      countTokens(userPrompt, "user", { code: languageCode, name: "null" }, req.url);
+      countTokens(languageCode, "out", { code: languageCode, name: "null" }, req.url);
+      const language = commonLanguages.find((lang) => lang.code === languageCode) as Language;
+      httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 200 });
+      return Response.json(language);
+    } else {
+      httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 500 });
+      return Response.json({ error: "No language code available" }, { status: 500 });
+    }
   } catch (error) {
     console.error("Error detecting language:", error);
     return Response.json({ error: "Failed to detect language" }, { status: 500 });

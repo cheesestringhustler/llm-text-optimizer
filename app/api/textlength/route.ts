@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { httpRequestCounter, countTokens } from "../../utils/metrics";
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -43,7 +44,16 @@ export async function POST(req: Request, res: Response) {
       max_tokens: 4096,
     });
 
-    return Response.json({ optimizedText: response.choices[0].message.content });
+    countTokens(systemPrompt, "system", language, req.url);
+    countTokens(userPrompt, "user", language, req.url);
+    if (response.choices[0].message.content !== null) {
+      countTokens(response.choices[0].message.content, "out", language, req.url);  
+      httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 200 });
+      return Response.json({ optimizedText: response.choices[0].message.content });
+    } else {
+      httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 500 });
+      return Response.json({ error: "No content available" }, { status: 500 });
+    }
   } catch (error) {
     console.error("Error optimizing text:", error);
     return Response.json({ error: "Failed to optimize text" }, { status: 500 });

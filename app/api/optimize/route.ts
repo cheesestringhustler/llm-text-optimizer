@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-// import swissgermanExamples from "../../../swissgerman_prompt_injection.json";
+import { httpRequestCounter, countTokens } from "../../utils/metrics";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -58,6 +58,8 @@ export async function POST(req: Request, res: Response) {
       modelName = "ft:gpt-3.5-turbo-0125:personal:swissgerman-ch-gr:9GY53JbZ";
     }
 
+    
+    
     const response = await openai.chat.completions.create({
       model: modelName,
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
@@ -65,20 +67,19 @@ export async function POST(req: Request, res: Response) {
       max_tokens: 4096,
     });
 
-    return Response.json({ optimizedText: response.choices[0].message.content });
+    countTokens(systemPrompt, "system", language, req.url);
+    countTokens(userPrompt, "user", language, req.url);
+    if (response.choices[0].message.content !== null) {
+      countTokens(response.choices[0].message.content, "out", language, req.url);  
+      httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 200 });
+      return Response.json({ optimizedText: response.choices[0].message.content });
+    } else {
+      httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 500 });
+      return Response.json({ error: "No content available" }, { status: 500 });
+    }
+    
   } catch (error) {
     console.error("Error optimizing text:", error);
     return Response.json({ error: "Failed to optimize text" }, { status: 500 });
   }
 }
-
-// Deprecated, using fine-tuned now
-// Add Swiss German examples if language code is 'de_ch'
-// if (language.code === "de-ch") {
-//   // Convert Swiss German examples to a string format for inclusion in the prompt
-//   // Take the first 10 examples from the Swiss German examples for inclusion
-//   systemPrompt += "Since we are using the Swiss German language, here are a few examples of how to use the language.\n";
-//   const firstTenSwissGermanExamples = swissgermanExamples.slice(0, 10);
-//   const swissGermanExamplesText = firstTenSwissGermanExamples.map(example => `${example.GermanText}\n${example.SwissGermanText}`).join("\n\n");
-//   systemPrompt += swissGermanExamplesText;
-// }
