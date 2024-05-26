@@ -23,6 +23,11 @@ services:
       - "traefik.http.routers.nextjs.rule=Host(`${HOST_ADDRESS_PROD}`)"
       - "traefik.http.routers.nextjs.entrypoints=websecure"
       - "traefik.http.routers.nextjs.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.nextjs.middlewares=redirect-to-https"
+      - "traefik.http.routers.nextjs-http.rule=Host(`${HOST_ADDRESS_PROD}`)"
+      - "traefik.http.routers.nextjs-http.entrypoints=web"
+      - "traefik.http.routers.nextjs-http.middlewares=redirect-to-https"
 
 volumes:
   letsencrypt:
