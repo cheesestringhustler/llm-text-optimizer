@@ -10,7 +10,7 @@ export async function POST(req: Request, res: Response) {
   const { text } = await req.json();
 
   try {
-    const systemPrompt = `Return the language in ISO 639-1 format. For example, if the language is English, return "en".`;
+    const systemPrompt = `Return the language in ISO 639-1 format. For the example, "Hello World!" return return "en".`;
 
     const text_excerpt = text.split(/\s+/).slice(0, 20).join(' '); // Get the first 20 words from the text in one line
     const userPrompt = `Return the language in ISO 639-1 format for following text:\n${text_excerpt}`
@@ -20,14 +20,14 @@ export async function POST(req: Request, res: Response) {
       temperature: 0.8,
       max_tokens: 4096,
     });
-
+    console.log(response.choices[0].message.content);
     const languageCode = response.choices[0].message.content;
     if (languageCode !== null) {
       countTokens(systemPrompt, "system", { code: languageCode, name: "null" }, req.url);
       countTokens(userPrompt, "user", { code: languageCode, name: "null" }, req.url);
       countTokens(languageCode, "out", { code: languageCode, name: "null" }, req.url);
-      const language = commonLanguages.find((lang) => lang.code === languageCode) as Language;
       httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 200 });
+      const language = commonLanguages.find((lang) => lang.code === languageCode) as Language;
       return Response.json(language);
     } else {
       httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 500 });

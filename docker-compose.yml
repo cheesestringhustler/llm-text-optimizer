@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v2.9
+    image: traefik:v3.0.1
     command:
       - "--api.insecure=true"
       - "--providers.docker=true"
@@ -22,11 +22,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nextjs.rule=Host(`nextjs.localhost`)"
+      - "traefik.http.routers.nextjs.rule=Host(`nextjs.localhost`) || Host(`${HOST_ADDRESS}`)"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
     environment:
       - NODE_ENV=production
