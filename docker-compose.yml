@@ -21,7 +21,7 @@ services:
   nextjs:
     build:
       context: .
-      dockerfile: Dockerfilekom
+      dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nextjs.rule=Host(`nextjs.localhost`)"
