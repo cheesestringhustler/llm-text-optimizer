@@ -11,11 +11,17 @@ export function middleware(req: NextRequest) {
         return new NextResponse('Unauthorized', { status: 403 });
     }
 
+    const response = NextResponse.next();
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+
     if (process.env.NEXT_PUBLIC_API_TOKEN !== token) {
         return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    return NextResponse.next();
+    return response;
 }
 
 // Apply middleware only to API routes
