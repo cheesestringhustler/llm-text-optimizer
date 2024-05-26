@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  traefik:
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--log.level=DEBUG"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+
+  nextjs:
+    labels:
+      - "traefik.http.routers.nextjs.rule=Host(`nextjs.localhost`) || Host(`${HOST_ADDRESS}`)"
+
+  prometheus:
+    labels:
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
+
+  grafana:
+    ports:
+      - "3001:3000"
+    labels:
+      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"

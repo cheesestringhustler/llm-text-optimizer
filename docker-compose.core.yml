@@ -1,10 +1,9 @@
+version: "3"
+
 services:
   traefik:
     image: traefik:v3.0.1
     command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
       - "--entrypoints.metrics.address=:8082"
       - "--metrics.prometheus=true"
       - "--metrics.prometheus.entryPoint=metrics"
@@ -12,7 +11,6 @@ services:
       - "--metrics.prometheus.addRoutersLabels=true"
       - "--metrics.prometheus.addServicesLabels=true"
     ports:
-      - "80:80"
       - "8080:8080"
       - "8082:8082"
     volumes:
@@ -24,13 +22,15 @@ services:
       dockerfile: Dockerfile
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nextjs.rule=Host(`nextjs.localhost`) || Host(`${HOST_ADDRESS}`)"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
     environment:
       - NODE_ENV=production
 
   prometheus:
     image: prom/prometheus
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -38,23 +38,15 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-storage:/prometheus
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`)"
-      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
-
 
   grafana:
     image: grafana/grafana
-    ports:
-      - "3001:3000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
     volumes:
       - grafana-storage:/var/lib/grafana
       - ./datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`grafana.localhost`)"
-      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
 volumes:
   prometheus-storage:
