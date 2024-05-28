@@ -1,16 +1,37 @@
 services:
   traefik:
     command:
-      # - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.metrics.address=:8082"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+
+      - "--api.insecure=false"
+      - "--api.dashboard=true"
       - "--providers.docker=true"
       # - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--entrypoints.websecure.asDefault=true"
       - "--log.level=DEBUG"
       # - "--certificatesresolvers.myresolver.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.myresolver.acme.email=${EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik_https.rule=Host(`traefik.${HOST_ADDRESS_PROD}`)"
+      - "traefik.http.routers.traefik_https.entrypoints=websecure"
+      - "traefik.http.routers.traefik_https.tls=true"
+      - "traefik.http.routers.traefik_https.tls.certResolver=myresolver"
+      - "traefik.http.routers.traefik_https.service=api@internal"
+      - "traefik.http.routers.traefik_https.middlewares=basic-auth-global"
+      - "traefik.http.middlewares.basic-auth-global.basicauth.users=${TRAEFIK_USER}:${TRAEFIK_PASSWORD}"
     ports:
       - "80:80"
       - "443:443"
@@ -22,12 +43,24 @@ services:
     labels:
       - "traefik.http.routers.nextjs.rule=Host(`${HOST_ADDRESS_PROD}`)"
       - "traefik.http.routers.nextjs.entrypoints=websecure"
+      - "traefik.http.routers.nextjs.tls=true"
       - "traefik.http.routers.nextjs.tls.certresolver=myresolver"
-      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.nextjs.middlewares=redirect-to-https"
-      - "traefik.http.routers.nextjs-http.rule=Host(`${HOST_ADDRESS_PROD}`)"
-      - "traefik.http.routers.nextjs-http.entrypoints=web"
-      - "traefik.http.routers.nextjs-http.middlewares=redirect-to-https"
+
+  prometheus:
+    labels:
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.${HOST_ADDRESS_PROD}`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls=true"
+      - "traefik.http.routers.prometheus.tls.certResolver=myresolver"
+      - "traefik.http.routers.prometheus.middlewares=basic-auth-global"
+      - "traefik.http.middlewares.basic-auth-global.basicauth.users=${TRAEFIK_USER}:${TRAEFIK_PASSWORD}"
+
+  grafana:
+    labels:
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${HOST_ADDRESS_PROD}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls=true"
+      - "traefik.http.routers.grafana.tls.certResolver=myresolver"
 
 volumes:
   letsencrypt:

@@ -1,9 +1,8 @@
-version: "3"
-
 services:
   traefik:
     image: traefik:v3.0.1
     command:
+      - "--providers.docker=true"
       - "--entrypoints.metrics.address=:8082"
       - "--metrics.prometheus=true"
       - "--metrics.prometheus.entryPoint=metrics"
