@@ -26,5 +26,5 @@ export function middleware(req: NextRequest) {
 
 // Apply middleware only to API routes
 export const config = {
-    matcher: ['/api/:path*', '!/api/metrics'],
-};
+    matcher: '/api/:path*',
+}
