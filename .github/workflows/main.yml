@@ -1,0 +1,28 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main  # Set to your deployment branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_DO }}
+
+      - name: SSH and Deploy
+        run: |
+          ssh -o StrictHostKeyChecking=no root@165.22.80.99 << 'EOF'
+            cd /root/llm-text-optimizer
+            git pull origin main
+            docker-compose -f docker-compose.core.yml build
+            docker-compose -f docker-compose.core.yml down
+            docker-compose -f docker-compose.core.yml -f docker-compose.prod.yml up -d
+          EOF
