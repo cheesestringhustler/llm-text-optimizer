@@ -22,7 +22,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no root@165.22.80.99 << 'EOF'
             cd /root/llm-text-optimizer
             git pull origin main
-            docker compose -f docker compose.core.yml build
-            docker compose -f docker compose.core.yml down
-            docker compose -f docker compose.core.yml -f docker compose.prod.yml up -d
+            docker compose -f docker-compose.core.yml build
+            docker compose -f docker-compose.core.yml down
+            docker compose -f docker-compose.core.yml -f docker-compose.prod.yml up -d
           EOF
