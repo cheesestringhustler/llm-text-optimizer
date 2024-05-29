@@ -4,6 +4,13 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 const allowedOrigins = isDevelopment ? ['http://localhost:3000', process.env.HOST_ADDRESS] : ["https://" + process.env.HOST_ADDRESS_PROD];
 
 export function middleware(req: NextRequest) {
+    const { pathname } = new URL(req.url);
+    
+    // Skip if the path is api/metrics
+    if (pathname === '/api/metrics') {
+        return NextResponse.next();
+    }
+
     const origin = req.headers.get('origin') || ''; // Default to empty string if null
     const token = req.headers.get('authorization')?.split(' ')[1] || '';
 
