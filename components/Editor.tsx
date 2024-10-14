@@ -203,7 +203,7 @@ function Editor() {
                     </form>
                     
                     {/* Displaying highlighted changes */}
-                    <div className="flex-1 relative">
+                    <div className="flex-1 relative flex flex-col">
                         <TextOutput
                           text={text} 
                           setText={setText}
@@ -213,9 +213,11 @@ function Editor() {
                           activeChangeId={activeChangeId} 
                           setActiveChangeId={setActiveChangeId} 
                         />
+                        <div className="flex flex-row gap-2">
                         <span className="absolute bottom-2 right-2 text-sm text-gray-500">{optimizedText.length} characters</span>
                         <Button className="w-[100px]" onClick={handleAcceptAll}>Accept</Button> {/* Accept all changes */}
                         <Button className="w-[100px]" onClick={handleRejectAll}>Reject</Button> {/* Reject all changes */}
+                        </div>
                     </div>
                 </div>
             </div>

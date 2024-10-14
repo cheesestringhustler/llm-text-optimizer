@@ -58,7 +58,7 @@ const TextOutput: React.FC<TextOutputProps> = ({ text, setText, language, optimi
     }, [optimizedText]); // Re-run effect when optimizedText changes
 
     return (
-        <div className='min-h-[300px] h-[300px] overflow-hidden border border-gray-200 rounded-md mb-4 bg-gray-100 relative'>
+        <div className='overflow-hidden border border-gray-200 rounded-md mb-4 bg-gray-100 relative min-h-[300px] h-full'>
             <div className='h-full overflow-auto p-2 text-sm'>
                 {
                     showDiffs ? (
