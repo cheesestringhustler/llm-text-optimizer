@@ -10,10 +10,15 @@ export async function POST(req: Request, res: Response) {
   const { text } = await req.json();
 
   try {
-    const systemPrompt = `Return the language in ISO 639-1 format. For the example, "Hello World!" return return "en".`;
+    const systemPrompt = `Return the language in ISO 639-1 format with one exception: For texts in Swiss German, return "de-ch". For examples:
+    "Hello World!" -> "en"
+    "Freundliche Grüsse" -> "de-ch" (Swiss German)
+    "Freundliche Grüße" -> "de" (Standard German)
+    Make sure to differentiate between "de-ch" for Swiss German and "de" for Standard German.
+    Only return the language code, no other text.`;
 
     const text_excerpt = text.split(/\s+/).slice(0, 20).join(' '); // Get the first 20 words from the text in one line
-    const userPrompt = `Return the language in ISO 639-1 format for following text:\n${text_excerpt}`
+    const userPrompt = `Return the language code for following text:\n${text_excerpt}`
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
@@ -28,6 +33,7 @@ export async function POST(req: Request, res: Response) {
       countTokens(languageCode, "out", { code: languageCode, name: "null" }, req.url);
       httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 200 });
       const language = commonLanguages.find((lang) => lang.code === languageCode) as Language;
+      console.log(Response.json(language));
       return Response.json(language);
     } else {
       httpRequestCounter.inc({ method: req.method, route: req.url, status_code: 500 });

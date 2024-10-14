@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox" // Import Checkbox from @sha
 import { Textarea } from "@/components/ui/textarea"
 import { Slider } from "@/components/ui/slider"
 import { Loader2 } from "lucide-react"
+import { Switch } from "@/components/ui/switch" // Add this import
 
 function Editor() {
     const [text, setText] = useState("Er geht Sonntags nicht gerne einkaufen;"); // Initial text input by the user
@@ -31,10 +32,11 @@ function Editor() {
     const [isLoadingLanguage, setIsLoadingLanguage] = useState(false);
 
     const adaptLanguage: Boolean = true; // Debug flag to adapt language automatically
+    const [autoDetectLanguage, setAutoDetectLanguage] = useState(false); // Add this state
 
     // Language adaptation based on text change, every 3 seconds
     useEffect(() => {
-        if (adaptLanguage && text.trim() !== "") {
+        if (autoDetectLanguage && text.trim() !== "") {
             const handler = setTimeout(async () => {
                 if (text !== debouncedText && language.code !== "ch-de") {
                     setIsLoadingLanguage(true);
@@ -70,7 +72,7 @@ function Editor() {
         } else {
             setDebouncedText("");
         }
-    }, [text, debouncedText]);
+    }, [text, debouncedText, autoDetectLanguage]); // Add autoDetectLanguage to dependencies
 
     // Handler for form submission
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -151,14 +153,14 @@ function Editor() {
                                 ))}
                             </SelectContent>
                         </Select>
-                        <div className="flex items-center gap-2">
-                            <Checkbox 
-                                id="swiss-german"
-                                checked={language.code === "ch-de"} 
-                                onCheckedChange={(checked) => setLanguage(commonLanguages.find((lang) => lang.code === (checked ? "ch-de" : "de")) as Language)}
+                        <div className="flex items-center space-x-2">
+                            <Switch
+                                id="auto-detect"
+                                checked={autoDetectLanguage}
+                                onCheckedChange={setAutoDetectLanguage}
                             />
-                            <label htmlFor="swiss-german" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                Swiss German
+                            <label htmlFor="auto-detect" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Auto-detect
                             </label>
                         </div>
                     </div>

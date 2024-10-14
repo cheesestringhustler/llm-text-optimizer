@@ -1,11 +1,11 @@
 [
     {
-      "code": "de",
-      "name": "German"
-    },
-    {
       "code": "de-ch",
       "name": "German (Switzerland)"
+    },
+    {
+      "code": "de",
+      "name": "German"
     },
     {
       "code": "ch-de",
