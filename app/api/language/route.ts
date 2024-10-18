@@ -20,7 +20,7 @@ export async function POST(req: Request, res: Response) {
     const text_excerpt = text.split(/\s+/).slice(0, 20).join(' '); // Get the first 20 words from the text in one line
     const userPrompt = `Return the language code for following text:\n${text_excerpt}`
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
       temperature: 0.8,
       max_tokens: 4096,

@@ -32,7 +32,7 @@ export async function POST(req: Request, res: Response) {
     }
 
     
-    let modelName = "gpt-3.5-turbo";
+    let modelName = "gpt-4o-mini";
     if (language.code === "ch-de") {
       modelName = "ft:gpt-3.5-turbo-0125:personal:swissgerman-ch-gr:9GY53JbZ";
     }
